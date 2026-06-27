@@ -4,6 +4,7 @@ const clientApi = require("../structures/ClientPtero");
 const os = require("os");
 const fs = require("fs");
 const path = require("path");
+const settings = require("../../settings");
 
 // === CONFIG ===
 const PANEL_URL = settings.PTERODACTYL_URL;
