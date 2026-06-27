@@ -5,6 +5,7 @@ const api = require("../../structures/Ptero");
 const { ptero } = require("../../../settings");
 const crypto = require("crypto");
 const sendEmail = require("../../structures/sendVerificationEmail");
+const settings = require("../../../settings");
 const cooldowns = new Map(); // userId => timestamp
 
 function generatePassword(length = 12) {
@@ -38,7 +39,7 @@ module.exports = {
   run: async ({ client, context }) => {
     const discordId = context.user.id;
     const now = Date.now();
-    const cooldownTime = 5 * 60 * 1000; // 5 minutes
+    const cooldownTime = 5000; // 5 seconds
 
     if (cooldowns.has(discordId)) {
       const lastUsed = cooldowns.get(discordId);
@@ -62,8 +63,8 @@ module.exports = {
       });
     }
 
-    // const channel = await client.channels.fetch(context.channelId);
-    // const allowedCategoryId = "1375517232733618227";
+    const channel = await client.channels.fetch(context.channelId);
+    // const allowedCategoryId = settings.ticketCategoryId;
 
     // if (!channel || channel.parentId !== allowedCategoryId) {
     //   return context.createMessage({

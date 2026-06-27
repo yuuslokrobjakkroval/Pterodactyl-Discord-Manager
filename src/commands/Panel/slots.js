@@ -17,11 +17,11 @@ module.exports = {
     ]);
 
     const tiers = [
-      { name: "Premium", cpu: 150, memory: 4096, disk: 5120, max: 5 },
-      { name: "Free", cpu: 50, memory: 512, disk: 1024, max:  45 },
+      { name: "Premium", cpu: 150, memory: 2048, disk: 4096, max: 5 },
+      { name: "Free", cpu: 50, memory: 1024, disk: 2048, max: 15 },
     ];
 
-    const usage = Object.fromEntries(tiers.map(t => [t.name, 0]));
+    const usage = Object.fromEntries(tiers.map((t) => [t.name, 0]));
 
     let page = 1;
 
@@ -54,7 +54,7 @@ module.exports = {
       }
 
       // Create message content
-      const lines = tiers.map(tier => {
+      const lines = tiers.map((tier) => {
         const used = usage[tier.name] || 0;
         const left = tier.max - used;
         return `**${tier.name}**: ${used}/${tier.max} used (${left} slots left)`;

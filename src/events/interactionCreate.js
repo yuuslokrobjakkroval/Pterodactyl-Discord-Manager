@@ -62,6 +62,14 @@ module.exports = async (client, interaction) => {
       await command.run({ client, context: interaction });
     } catch (error) {
       console.error("Command error:", error);
+      if (interaction.deferred && !interaction.replied) {
+        await interaction
+          .followUp({
+            content: "❌ Unexpected internal error while processing this command.",
+            flags: MessageFlags.Ephemeral,
+          })
+          .catch(() => {});
+      }
     }
   }
 

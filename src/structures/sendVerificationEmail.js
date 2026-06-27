@@ -4,18 +4,18 @@ const settings = require("../../settings");
 dotenv.config();
 
 // Load credentials from environment variables
-const SMTP_USER = process.env.ZOHO_SMTP_USER; // Set your Zoho SMTP user here or in environment variables
-const SMTP_PASS = process.env.ZOHO_SMTP_PASS; // Set your Zoho SMTP password here or in environment variables
+const SMTP_USER = process.env.SMTP_USER; // Set your Zoho SMTP user here or in environment variables
+const SMTP_PASS = process.env.SMTP_PASS; // Set your Zoho SMTP password here or in environment variables
 
 if (!SMTP_PASS) {
-  throw new Error("Missing SMTP password. Set ZOHO_SMTP_PASS in environment.");
+  throw new Error("Missing SMTP password. Set SMTP_PASS in environment.");
 }
 
 // Configure transporter
 const transporter = nodemailer.createTransport({
-  host: "smtp.zoho.in",
-  port: 465,
-  secure: true,
+  host: "smtp-relay.brevo.com",
+  port: 587,
+  secure: false,
   auth: {
     user: SMTP_USER,
     pass: SMTP_PASS,
@@ -33,8 +33,10 @@ module.exports = async function sendVerificationEmail(email, code) {
   }
 
   try {
+    const FROM_EMAIL =
+      process.env.FROM_EMAIL || `no-reply@${settings.productDomain}`;
     const result = await transporter.sendMail({
-      from: `${settings.productName} <${SMTP_USER}>`,
+      from: `${settings.productName} <${FROM_EMAIL}>`,
       to: email,
       subject: `${settings.productName} Email Verification`,
       html: `
