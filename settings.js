@@ -3,7 +3,7 @@ dotenv.config();
 
 module.exports = {
   productName: process.env.PRODUCT_NAME, // Product name for email templates
-  TOKEN: process.env.TOKEN, // Discord bot token
+  TOKEN: process.env.DISCORD_TOKEN, // Discord bot token
   CLIENT_ID: process.env.CLIENT_ID, // Discord bot client ID
   CLIENT_SECRET: process.env.CLIENT_SECRET, // Discord bot client secret
 
