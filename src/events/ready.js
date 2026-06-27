@@ -156,8 +156,6 @@ async function assignRolesAndAnnounce(client) {
 
 // === MODULE INIT ===
 module.exports = async (client) => {
-  console.log(`Cluster #${client.cluster.id} ready.`);
-
   if (client.cluster.id !== 0) return;
 
   // register slash commands

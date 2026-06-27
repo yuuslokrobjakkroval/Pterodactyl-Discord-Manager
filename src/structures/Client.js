@@ -83,7 +83,7 @@ class PteroBot extends Client {
         );
       }
 
-      this.once("ready", async () => {});
+      this.once("clientReady", async () => {});
 
       return this;
     } catch (error) {
