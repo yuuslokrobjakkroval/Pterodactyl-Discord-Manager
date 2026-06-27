@@ -1,5 +1,6 @@
 const { EmbedBuilder, ApplicationCommandOptionType } = require("discord.js");
 const api = require("../../structures/Ptero");
+const settings = require("../../../settings");
 
 const bannedUsers = ["1332006483600347157"];
 
@@ -388,7 +389,7 @@ module.exports = {
             .setColor("Green")
             .setTitle("✅ Server Created")
             .setDescription(
-              `🖥️ **Name:** \`${serverName}\`\n🍳 **Type:** \`${egg.name}\`\n📦 **Tier:** \`${selectedTier.name}\`\n🔗 [View on Panel](https://panel.leonodes.xyz/server/${res.data.attributes.identifier})`,
+              `🖥️ **Name:** \`${serverName}\`\n🍳 **Type:** \`${egg.name}\`\n📦 **Tier:** \`${selectedTier.name}\`\n🔗 [View on Panel](${settings.ptero.url}/server/${res.data.attributes.identifier})`,
             ),
         ],
       });
