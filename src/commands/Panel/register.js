@@ -7,10 +7,9 @@ const crypto = require("crypto");
 const sendEmail = require("../../structures/sendVerificationEmail");
 const cooldowns = new Map(); // userId => timestamp
 
-const bannedMembers = ["1332006483600347157"];
-
 function generatePassword(length = 12) {
-  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
+  const charset =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
   let password = "";
   const bytes = crypto.randomBytes(length);
   for (let i = 0; i < length; i++) {
@@ -41,8 +40,6 @@ module.exports = {
     const now = Date.now();
     const cooldownTime = 5 * 60 * 1000; // 5 minutes
 
-
-
     if (cooldowns.has(discordId)) {
       const lastUsed = cooldowns.get(discordId);
       if (now - lastUsed < cooldownTime) {
@@ -54,22 +51,26 @@ module.exports = {
       }
     }
 
-    if (bannedMembers.includes(discordId)) {
+    const bannedMembers = await User.find({ isBanned: true })
+      .select("discordId")
+      .lean();
+
+    if (bannedMembers.some((member) => member.discordId === discordId)) {
       return context.createMessage({
         content: "❌ You are banned from creating an account.",
         flags: MessageFlags.Ephemeral,
       });
     }
 
-    const channel = await client.channels.fetch(context.channelId);
-    const allowedCategoryId = "1375517232733618227";
+    // const channel = await client.channels.fetch(context.channelId);
+    // const allowedCategoryId = "1375517232733618227";
 
-    if (!channel || channel.parentId !== allowedCategoryId) {
-      return context.createMessage({
-        content: "❌ You can only use this command in a ticket channel.",
-        flags: MessageFlags.Ephemeral,
-      });
-    }
+    // if (!channel || channel.parentId !== allowedCategoryId) {
+    //   return context.createMessage({
+    //     content: "❌ You can only use this command in a ticket channel.",
+    //     flags: MessageFlags.Ephemeral,
+    //   });
+    // }
 
     const email = context.options.getString("email");
 
@@ -100,7 +101,8 @@ module.exports = {
           } else {
             console.error("Error checking panel user:", err);
             return context.createMessage({
-              content: "⚠️ Unexpected error verifying your account. Please try again shortly.",
+              content:
+                "⚠️ Unexpected error verifying your account. Please try again shortly.",
               flags: MessageFlags.Ephemeral,
             });
           }
@@ -119,19 +121,21 @@ module.exports = {
         searchParams: { filter: email },
       });
       const found = emailCheck.data?.data?.find(
-        (u) => u.attributes.email.toLowerCase() === email.toLowerCase()
+        (u) => u.attributes.email.toLowerCase() === email.toLowerCase(),
       );
 
       if (found) {
         return context.createMessage({
-          content: "❌ This email is already registered on the panel. Please use a different email.",
+          content:
+            "❌ This email is already registered on the panel. Please use a different email.",
           flags: MessageFlags.Ephemeral,
         });
       }
     } catch (err) {
       console.error("Error checking email uniqueness:", err);
       return context.createMessage({
-        content: "⚠️ Unable to verify email. Please try again later or contact support.",
+        content:
+          "⚠️ Unable to verify email. Please try again later or contact support.",
         flags: MessageFlags.Ephemeral,
       });
     }
@@ -147,7 +151,8 @@ module.exports = {
     } catch (e) {
       console.error("Email send error:", e);
       return context.createMessage({
-        content: "❌ Failed to send verification email. Please contact support.",
+        content:
+          "❌ Failed to send verification email. Please contact support.",
         flags: MessageFlags.Ephemeral,
       });
     }
@@ -164,13 +169,14 @@ module.exports = {
           .setDescription(
             `A 6-digit verification code has been sent to **${email}**.\n\n` +
               `Please type the **exact 6-digit code** in this channel within 5 minutes.\n` +
-              `If you do not type it in time, the registration will cancel.`
+              `If you do not type it in time, the registration will cancel.`,
           ),
       ],
     });
 
     await context.createMessage({
-      content: "✅ Verification code sent! Check the mail and type the code you received in this channel.",
+      content:
+        "✅ Verification code sent! Check the mail and type the code you received in this channel.",
       flags: MessageFlags.Ephemeral,
     });
 
@@ -182,7 +188,9 @@ module.exports = {
     }
 
     const filter = (msg) =>
-      msg.author.id === discordId && msg.channel.id === context.channelId && /^\d{6}$/.test(msg.content.trim());
+      msg.author.id === discordId &&
+      msg.channel.id === context.channelId &&
+      /^\d{6}$/.test(msg.content.trim());
 
     try {
       const collected = await channel.awaitMessages({
@@ -198,13 +206,17 @@ module.exports = {
       const pending = await PendingUser.findOne({ discordId });
 
       if (!pending || Date.now() > pending.expiresAt) {
-        await replyMsg.reply("❌ That code has expired. Please run `/register` again.");
+        await replyMsg.reply(
+          "❌ That code has expired. Please run `/register` again.",
+        );
         await PendingUser.deleteOne({ discordId });
         return;
       }
 
       if (pending.code !== submittedCode) {
-        await replyMsg.reply("❌ Incorrect code. Registration canceled. Run `/register` again.");
+        await replyMsg.reply(
+          "❌ Incorrect code. Registration canceled. Run `/register` again.",
+        );
         await PendingUser.deleteOne({ discordId });
         return;
       }
@@ -224,14 +236,21 @@ module.exports = {
           language: ptero.defaultLanguage,
         });
       } catch (err) {
-        console.error("Panel create error (API call):", err.response?.data || err);
-        await replyMsg.reply("❌ Failed to create your panel account. Please try again later.");
+        console.error(
+          "Panel create error (API call):",
+          err.response?.data || err,
+        );
+        await replyMsg.reply(
+          "❌ Failed to create your panel account. Please try again later.",
+        );
         return;
       }
 
       if (!res?.data?.attributes?.id) {
         console.error("Panel create error: Missing ID in response:", res?.data);
-        await replyMsg.reply("❌ Unexpected API response. Contact an administrator.");
+        await replyMsg.reply(
+          "❌ Unexpected API response. Contact an administrator.",
+        );
         return;
       }
 
@@ -249,17 +268,21 @@ module.exports = {
                 `🧾 **Username:** \`${discordId}\`\n` +
                 `🔑 **Password:** \`${password}\`\n\n` +
                 `You can now log in at: <${ptero.url}>\n\n` +
-                `> Please reset your password immediately after logging in.`
+                `> Please reset your password immediately after logging in.`,
             ),
         ],
       });
     } catch (err) {
       if (err instanceof Error && err.message === "time") {
-        await channel.send("⏳ Verification timed out. Please run `/register` again if you still wish to sign up.");
+        await channel.send(
+          "⏳ Verification timed out. Please run `/register` again if you still wish to sign up.",
+        );
         await PendingUser.deleteOne({ discordId });
       } else {
         console.error("Unexpected error in awaitMessages:", err);
-        await channel.send("❌ An unexpected error occurred. Please try again.");
+        await channel.send(
+          "❌ An unexpected error occurred. Please try again.",
+        );
         await PendingUser.deleteOne({ discordId });
       }
     }

@@ -31,19 +31,21 @@ A Discord bot for managing user registration, server creation, and administratio
 ### Prerequisites
 
 - Node.js v18+
-- MongoDB database
+- Mongodb database
 - A Pterodactyl panel with API access
 - A Discord bot token
 
 ### Installation
 
 1. **Clone the repository:**
+
    ```sh
    git clone <your-repo-url>
    cd Pterodactyl-Discord-Manager
    ```
 
 2. **Install dependencies:**
+
    ```sh
    npm install
    ```

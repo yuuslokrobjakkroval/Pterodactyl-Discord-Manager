@@ -1,14 +1,13 @@
 const { MessageFlags } = require("discord.js");
 const api = require("../../structures/Ptero");
-const { adminid } = require('../../../settings');
-
+const { ownerId } = require("../../../settings");
 
 module.exports = {
   name: "modify",
   description: "Modify Server Resources",
 
   run: async ({ context }) => {
-    if (context.user.id !== adminid){
+    if (context.user.id !== ownerId) {
       return context.createMessage({
         content: "❌ You are not authorized to use this command.",
         flags: MessageFlags.Ephemeral,
@@ -23,13 +22,13 @@ module.exports = {
       "6df028d4-975f-4efb-83d1-2c8e613c10a4",
       "3d64f61d-be76-4f83-a5c2-26112dc8f897",
       "151f6d76-04ba-422e-abc8-d80588151e59",
-      "25b9f9a2-703c-41ff-a9de-6574187af462"
+      "25b9f9a2-703c-41ff-a9de-6574187af462",
     ];
 
     const PREMIUM_RESOURCES = {
       cpu: 150,
       memory: 4096,
-      disk: 5120
+      disk: 5120,
     };
 
     const TARGET_RESOURCES = {
@@ -43,8 +42,8 @@ module.exports = {
       feature_limits: {
         databases: 0,
         backups: 1,
-        allocations: 1
-      }
+        allocations: 1,
+      },
     };
 
     const delay = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -53,7 +52,9 @@ module.exports = {
 
     try {
       while (true) {
-        const res = await api.get("/servers", { params: { page, per_page: 100 } });
+        const res = await api.get("/servers", {
+          params: { page, per_page: 100 },
+        });
         const servers = res.data.data || [];
         if (servers.length === 0) break;
 
@@ -73,14 +74,17 @@ module.exports = {
           try {
             await api.patch(`/servers/${id}/build`, {
               allocation,
-              ...TARGET_RESOURCES
+              ...TARGET_RESOURCES,
             });
 
             modifiedCount++;
             console.log(`✅ Modified ${name} (${uuid})`);
             await delay(250);
           } catch (err) {
-            console.error(`❌ Failed to update ${name} (${uuid}):`, err?.response?.data || err);
+            console.error(
+              `❌ Failed to update ${name} (${uuid}):`,
+              err?.response?.data || err,
+            );
           }
         }
 

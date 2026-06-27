@@ -14,17 +14,17 @@ class PteroBot extends Client {
   constructor() {
     super({
       intents: [
-          GatewayIntentBits.Guilds,
-          GatewayIntentBits.GuildMessages,
-          GatewayIntentBits.GuildMembers,
-          GatewayIntentBits.MessageContent
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.MessageContent,
       ],
       allowedMentions: { parse: ["users", "roles"], repliedUser: false },
       presence: {
         activities: [
           {
-            name: "panel.leonodes.xyz",
-            type: ActivityType.Watching,
+            name: settings.BOT_ACTIVITY,
+            type: ActivityType[settings.BOT_ACTIVITY_TYPE],
           },
         ],
       },
@@ -63,12 +63,12 @@ class PteroBot extends Client {
         const eventHandler = require(`../events/${event}`);
         this.events.set(eventName, eventHandler);
         this[eventName === "ready" ? "once" : "on"](eventName, (...args) =>
-          eventHandler(this, ...args)
+          eventHandler(this, ...args),
         );
       }
 
       // MongoDB connection
-      await mongoose.connect(this.settings.MongoDB, {
+      await mongoose.connect(this.settings.mongodb, {
         maxPoolSize: 6,
         minPoolSize: 1,
         connectTimeoutMS: 10000,
@@ -79,12 +79,11 @@ class PteroBot extends Client {
 
       if (this.cluster.id === 0) {
         console.log(
-          `Loaded ${this.commands.size} commands and ${this.events.size} events`
+          `Loaded ${this.commands.size} commands and ${this.events.size} events`,
         );
       }
 
-      this.once("ready", async () => {
-      });
+      this.once("ready", async () => {});
 
       return this;
     } catch (error) {
