@@ -4,8 +4,12 @@ const settings = require("../../settings");
 dotenv.config();
 
 // Load credentials from environment variables
-const SMTP_USER = process.env.SMTP_USER; // Set your Zoho SMTP user here or in environment variables
-const SMTP_PASS = process.env.SMTP_PASS; // Set your Zoho SMTP password here or in environment variables
+const SMTP_HOST = process.env.SMTP_HOST || "smtp-relay.brevo.com";
+const SMTP_USER = process.env.SMTP_USER || "underscore";
+const SMTP_PASS = process.env.SMTP_PASS || "underscore";
+const SMTP_PORT = process.env.SMTP_PORT || 587;
+const SMTP_SECURE = process.env.SMTP_SECURE === "true" || false;
+const SMTP_FROM = process.env.SMTP_FROM || `no-reply@${settings.productDomain}`;
 
 if (!SMTP_PASS) {
   throw new Error("Missing SMTP password. Set SMTP_PASS in environment.");
@@ -13,12 +17,12 @@ if (!SMTP_PASS) {
 
 // Configure transporter
 const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 587,
-  secure: false,
+  host: SMTP_HOST, // e.g., smtp-relay.brevo.com
+  port: SMTP_PORT, // 587 for TLS, 465 for SSL
+  secure: SMTP_SECURE, // true for 465, false for other ports
   auth: {
-    user: SMTP_USER,
-    pass: SMTP_PASS,
+    user: SMTP_USER, // e.g., "underscore"
+    pass: SMTP_PASS, // e.g., "underscore"
   },
   logger: true,
   debug: false, // Set to true for debugging
@@ -33,8 +37,7 @@ module.exports = async function sendVerificationEmail(email, code) {
   }
 
   try {
-    const FROM_EMAIL =
-      process.env.FROM_EMAIL || `no-reply@${settings.productDomain}`;
+    const FROM_EMAIL = SMTP_FROM || `no-reply@${settings.productDomain}`;
     const result = await transporter.sendMail({
       from: `${settings.productName} <${FROM_EMAIL}>`,
       to: email,
