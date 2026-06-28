@@ -3,6 +3,7 @@ const api = require("../../structures/Ptero");
 const settings = require("../../../settings");
 
 const bannedUsers = ["1332006483600347157"];
+const PREMIUM_ROLE_ID = process.env.PREMIUM_ROLE_ID || "1382653463904915569";
 
 const whitelistedServers = [
   "c47c3ff8-7076-449d-961e-ca1b3f3c0ca3",
@@ -17,7 +18,7 @@ const whitelistedServers = [
 const whitelistedServerSet = new Set(whitelistedServers);
 
 const tiers = [
-  { name: "Premium", cpu: 150, memory: 4096, disk: 5120, max: 5 },
+  { name: "Premium", cpu: 150, memory: 1024, disk: 2048, max: 5 },
   { name: "Free", cpu: 50, memory: 512, disk: 1024, max: 45 },
 ];
 
@@ -54,6 +55,10 @@ const panelEggNamesCache = {
   expiresAt: 0,
   names: [],
 };
+
+function isPremiumMember(context) {
+  return Boolean(context.member?.roles?.cache?.has(PREMIUM_ROLE_ID));
+}
 
 function getTotalPages(meta) {
   return Number(meta?.pagination?.total_pages || 1);
@@ -338,8 +343,13 @@ module.exports = {
       });
     }
 
+    const premiumUser = isPremiumMember(context);
+    const candidateTiers = premiumUser
+      ? tiers
+      : tiers.filter((tier) => tier.name === "Free");
+
     let selectedTier = null;
-    for (const tier of tiers) {
+    for (const tier of candidateTiers) {
       if (tierUsage[tier.name] < tier.max) {
         selectedTier = tier;
         break;
@@ -347,9 +357,12 @@ module.exports = {
     }
 
     if (!selectedTier) {
+      const fullTierMessage = premiumUser
+        ? "⚠️ All tier slots are currently full. Please try again later."
+        : "⚠️ Free tier slots are currently full. Please try again later.";
+
       return context.createMessage({
-        content:
-          "⚠️ All tier slots are currently full. Please try again later.",
+        content: fullTierMessage,
       });
     }
 
