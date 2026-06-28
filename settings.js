@@ -23,4 +23,6 @@ module.exports = {
     defaultLanguage: "en", // Do not change this
     clientApiKey: process.env.PTERODACTYL_CLIENT_API_KEY, // Pterodactyl client API key ( Admin key )
   },
+
+  sponsorRoleId: process.env.SPONSOR_ROLE_ID, // Discord role ID for the sponsor role
 };

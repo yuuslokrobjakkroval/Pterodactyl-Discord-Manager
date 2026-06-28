@@ -1,4 +1,5 @@
 const { ApplicationCommandOptionType, EmbedBuilder } = require("discord.js");
+const settings = require("../../../settings");
 
 module.exports = {
   name: "costanalysis",
@@ -60,25 +61,26 @@ module.exports = {
 
     const ramInGB = ramUnit === "mb" ? ram / 1024 : ram;
     const diskInGB = diskUnit === "mb" ? disk / 1024 : disk;
-      
+
     if (cpu > maxCPU || ramInGB > maxRAMGB || diskInGB > maxDiskGB) {
-    return context.createMessage({
-      content: `Hey, those specs are a bit over the top! Let's keep it practical and stay within the limits: CPU max ${maxCPU} vCores, RAM max ${maxRAMGB} GB, Disk max ${maxDiskGB} GB. Try adjusting to these, and we’re good to go!`,
-      flags: 64,
-    });
-  }
+      return context.createMessage({
+        content: `Hey, those specs are a bit over the top! Let's keep it practical and stay within the limits: CPU max ${maxCPU} vCores, RAM max ${maxRAMGB} GB, Disk max ${maxDiskGB} GB. Try adjusting to these, and we’re good to go!`,
+        flags: 64,
+      });
+    }
 
     // Pricing
     const discountedCpuRate = 1.29;
     const regularCpuRate = 2.09;
     const ramRate = 0.55;
     const diskRate = 0.15;
-    const allocationFee = 0.10;
+    const allocationFee = 0.1;
 
     // CPU cost logic
     const discountedCores = Math.min(cpu, 2);
     const regularCores = Math.max(cpu - 2, 0);
-    const cpuCost = (discountedCores * discountedCpuRate) + (regularCores * regularCpuRate);
+    const cpuCost =
+      discountedCores * discountedCpuRate + regularCores * regularCpuRate;
 
     const ramCost = ramInGB * ramRate;
     const diskCost = diskInGB * diskRate;
@@ -86,13 +88,15 @@ module.exports = {
     const rawTotal = cpuCost + ramCost + diskCost + allocationFee;
 
     // Round to nearest .99 and add +0.10
-    let basePrice = rawTotal < 1 ? rawTotal : Math.floor(rawTotal) + 0.99 + 0.01;
+    let basePrice =
+      rawTotal < 1 ? rawTotal : Math.floor(rawTotal) + 0.99 + 0.01;
     basePrice = parseFloat(basePrice.toFixed(2));
 
-    // Role-based discount: flat £1 off
+    // Role-based discount: flat $1 off
+    let sponsorRoleId = settings.sponsorRoleId; // Replace with the actual role ID for the sponsor role
     let finalPrice = basePrice;
     let discountPercent = null;
-    if (member?.roles?.cache?.has("1382653463904915569")) {
+    if (member?.roles?.cache?.has(sponsorRoleId)) {
       finalPrice = parseFloat((basePrice - 1).toFixed(2));
       const percentDecrease = ((basePrice - finalPrice) / basePrice) * 100;
       discountPercent = percentDecrease.toFixed(1);
@@ -105,33 +109,33 @@ module.exports = {
         {
           name: "CPU",
           value:
-            `${discountedCores > 0 ? `${discountedCores} Core(s) × £${discountedCpuRate.toFixed(2)}` : ""}` +
+            `${discountedCores > 0 ? `${discountedCores} Core(s) × $${discountedCpuRate.toFixed(2)}` : ""}` +
             `${regularCores > 0 && discountedCores > 0 ? " + " : ""}` +
-            `${regularCores > 0 ? `${regularCores} Core(s) × £${regularCpuRate.toFixed(2)}` : ""}` +
-            ` = £${cpuCost.toFixed(2)}`
+            `${regularCores > 0 ? `${regularCores} Core(s) × $${regularCpuRate.toFixed(2)}` : ""}` +
+            ` = $${cpuCost.toFixed(2)}`,
         },
         {
           name: "RAM",
-          value: `${ram} ${ramUnit.toUpperCase()} = ${ramInGB.toFixed(2)} GB × £${ramRate} = £${ramCost.toFixed(2)}`,
+          value: `${ram} ${ramUnit.toUpperCase()} = ${ramInGB.toFixed(2)} GB × $${ramRate} = $${ramCost.toFixed(2)}`,
         },
         {
           name: "Disk",
-          value: `${disk} ${diskUnit.toUpperCase()} = ${diskInGB.toFixed(2)} GB × £${diskRate} = £${diskCost.toFixed(2)}`,
+          value: `${disk} ${diskUnit.toUpperCase()} = ${diskInGB.toFixed(2)} GB × $${diskRate} = $${diskCost.toFixed(2)}`,
         },
         {
           name: "Server Allocation Fee",
-          value: `£${allocationFee.toFixed(2)}`,
+          value: `$${allocationFee.toFixed(2)}`,
         },
         {
           name: "Estimated Monthly Cost",
-          value: `£${basePrice.toFixed(2)}`,
-        }
+          value: `$${basePrice.toFixed(2)}`,
+        },
       );
 
     if (discountPercent !== null) {
       embed.addFields({
         name: "Discount Applied",
-        value: `Final Cost: £${finalPrice.toFixed(2)} (${discountPercent}% discounted)`,
+        value: `Final Cost: $${finalPrice.toFixed(2)} (${discountPercent}% discounted)`,
         inline: false,
       });
     }
